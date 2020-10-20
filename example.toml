@@ -1,0 +1,18 @@
+[[tcp]]
+desc = "GitLab SSH"
+addr = "gitlab.com:22"
+
+[[tcp]]
+desc = "Freenode IRC"
+addr = "irc.freenode.net:6667"
+
+[[http]]
+desc = "httpbin IP endpoint"
+addr = "https://httpbin.org/ip"
+
+# Posts as a form and reports success if the status code returned is 400
+# which it will be for this bad request to this particular endpoint
+[[http]]
+desc = "httpbin POST endpoint (form)"
+addr = "https://httpbin.org/status/undefined"
+custom = { params = { someKey = "SpecialValue" }, ok = 400, bad = 403 } 
