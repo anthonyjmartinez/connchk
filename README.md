@@ -16,6 +16,12 @@ ways:
 The application expects exactly one argument which is the TOML document defining
 target hosts.
 
+### Install
+
+To get `connchk` run `cargo install connchk` on a system with [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) installed.
+
+For the time being this is the only way. At a later date packages for various systems may be included in the repository.
+
 ### Example TOML Config
 ```toml
 # example.toml
