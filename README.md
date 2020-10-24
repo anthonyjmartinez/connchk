@@ -20,8 +20,6 @@ target hosts.
 
 To get `connchk` run `cargo install connchk` on a system with [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) installed.
 
-For the time being this is the only way. At a later date packages for various systems may be included in the repository.
-
 ### Example TOML Config
 ```toml
 # example.toml
@@ -54,6 +52,10 @@ Successfully connected to Freenode IRC
 Successfully connected to httpbin IP endpoint
 Successfully connected to httpbin POST endpoint (form)
 ```
+
+### Major Changes
+
+- v0.2.0 disabled the default `reqwest` features to move the package to use of `rustls` instead of `native-tls`
 
 ### TODO
 
