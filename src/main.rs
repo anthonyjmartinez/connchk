@@ -67,7 +67,8 @@ impl HttpResource {
 	if resp.status() == StatusCode::OK {
 	    Ok(println!("Successfully connected to {}", self.desc))
 	} else {
-	    Ok(println!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?))
+	    let msg = format!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
+	    Err(From::from(msg))
 	}
     }
 
@@ -87,9 +88,11 @@ impl HttpResource {
 	if resp_code == options.ok {
 	    Ok(println!("Successfully connected to {}", self.desc))
 	} else if resp_code == options.bad {
-	    Ok(println!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?))
+	    let msg = format!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
+	    Err(From::from(msg))
 	} else {
-	    Ok(println!("Failed to connect to {} with unexpected error: {}, {}", self.desc, resp.status().as_str(), resp.text()?))
+	    let msg = format!("Failed to connect to {} with unexpected error: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
+	    Err(From::from(msg))
 	}
     }
 }
@@ -152,23 +155,26 @@ impl Checker for TcpResource {
 
 impl NetworkResources {
     /**
-    Loops through all values contained within the `Networkresources` struct
-    and calls their `check()` method.
+    Checks all resources contained by a NetworkResources struct.
+    Any error messages will be printed to the console.
     */
-    fn check_resources(&self) -> Result<(), Box<dyn std::error::Error>> {
-	if let Some(tcp) = &self.tcp {
-	    for t in tcp.iter() {
-		t.check()?
-	    }
-	};
+    fn check_resources(&self) {
+	NetworkResources::check_vec(&self.tcp);
+	NetworkResources::check_vec(&self.http);
+    }
 
-	if let Some(http) = &self.http {
-	    for h in http.iter() {
-		h.check()?
+    /**
+    Loops through all items present in a NetworkResources element.
+    */
+    fn check_vec<T: Checker> (v: &Option<Vec<T>>) {
+	if let Some(v) = v {
+	    for element in v.iter() {
+		match element.check() {
+		    Ok(_) => (),
+		    Err(e) => println!("Failed to connect to {} with:\n\t{:?}", element.description(), e)
+		}
 	    }
-	};
-	
-	Ok(())
+	}
     }
 }
 
@@ -185,7 +191,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let config_path = std::path::PathBuf::from(&args[1]);
 	let config = std::fs::read_to_string(&config_path)?;
 	let resources: NetworkResources = toml::from_str(&config)?;
-	resources.check_resources()?;
+	resources.check_resources();
     }
    
     Ok(())

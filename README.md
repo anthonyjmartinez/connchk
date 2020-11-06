@@ -55,6 +55,7 @@ Successfully connected to httpbin POST endpoint (form)
 
 ### Major Changes
 
+- v0.2.1 fixes error handling such that testing does not abort with the first failure
 - v0.2.0 disabled the default `reqwest` features to move the package to use of `rustls` instead of `native-tls`
 
 ### TODO
