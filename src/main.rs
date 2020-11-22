@@ -28,8 +28,9 @@ use std::collections::HashMap;
 use std::env;
 use std::net::{Shutdown, TcpStream};
 use reqwest::StatusCode;
-use reqwest::blocking::Client;
+use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
+use serde_json::Value;
 use toml;
 
 
@@ -39,9 +40,9 @@ custom HTTP(s) checks.
 */ 
 #[derive(Deserialize, Debug)]
 struct HttpOptions {
-    params: HashMap<String,String>,
+    params: Option<HashMap<String,String>>,
+    json: Option<Value>,
     ok: u16,
-    bad: u16,
 }
 
 /**
@@ -80,18 +81,31 @@ impl HttpResource {
     any other value/error.
     */
     fn check_custom(&self, options: &HttpOptions) -> Result<(), Box<dyn std::error::Error>> {
+
 	let client = Client::new();
-	let resp = client.post(&self.addr)
-	    .form(&options.params)
-	    .send()?;
+	let resp: Response;
+	if let Some(params) = &options.params {
+	    resp = client.post(&self.addr)
+		.form(params)
+		.send()?;
+	    self.custom_resp(options, resp)?
+	} else if let Some(json) = &options.json {
+	    resp = client.post(&self.addr)
+		.json(json)
+		.send()?;
+	    self.custom_resp(options, resp)?
+	};
+
+	Ok(())
+    }
+
+    fn custom_resp(&self, options: &HttpOptions, resp: Response) -> Result<(), Box<dyn std::error::Error>> {
 	let resp_code = resp.status().as_u16();
+
 	if resp_code == options.ok {
 	    Ok(println!("Successfully connected to {}", self.desc))
-	} else if resp_code == options.bad {
-	    let msg = format!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
-	    Err(From::from(msg))
 	} else {
-	    let msg = format!("Failed to connect to {} with unexpected error: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
+	    let msg = format!("Failed to connect to {} with: {}, {}", self.desc, resp.status().as_str(), resp.text()?);
 	    Err(From::from(msg))
 	}
     }

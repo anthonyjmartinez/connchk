@@ -15,4 +15,18 @@ addr = "https://httpbin.org/ip"
 [[http]]
 desc = "httpbin POST endpoint (form)"
 addr = "https://httpbin.org/status/undefined"
-custom = { params = { someKey = "SpecialValue" }, ok = 400, bad = 403 } 
+custom = { params = { someKey = "SpecialValue" }, ok = 400 } 
+
+# Posts as JSON and reports success if the status code returned is 400
+# as it will be for this particular endpoint
+[[http]]
+desc = "httpbin JSON endpoint"
+addr = "https://httpbin.org/status/400"
+custom = { json = { someKey = "SpecialValue" }, ok = 400 } 
+
+# An example failure - this endpoing will return a 502 status code,
+# but our configuration expects a 400 
+[[http]]
+desc = "httpbin JSON endpoint - Error"
+addr = "https://httpbin.org/status/502"
+custom = { json = { someKey = [3, "AnotherValue", false], anotherKey = { nested = "value", count = [1, 2, 3] } }, ok = 400 } 
