@@ -92,4 +92,4 @@ has been explored, so if issues are encountered please [let it be known](https:/
 
 This project uses [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html).
 
-Copyright (C) 2020 Anthony Martinez
+Copyright (C) 2020-2021 Anthony Martinez
