@@ -1,6 +1,6 @@
 /*   
     connchk gives a status of reachability of plain tcp or http(s) endpoints from your machine
-    Copyright (C) 2020 Anthony Martinez
+    Copyright (C) 2020-2021 Anthony Martinez
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,17 +16,17 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*!
-`connchk` is command-line network checking tool written in Rust. It aims
-to provide a cross platform utility that can verify if your host can reach
-targets defined in a TOML document.
-*/
+//!
+//! `connchk` is command-line network checking tool written in Rust. It aims
+//! to provide a cross platform utility that can verify if your host can reach
+//! targets defined in a TOML document.
 
 
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::env;
 use std::net::{Shutdown, TcpStream};
+use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
@@ -34,10 +34,8 @@ use serde_json::Value;
 use toml;
 
 
-/**
-Provides a deserialize target optional parameters for
-custom HTTP(s) checks.
-*/ 
+/// Provides a deserialize target optional parameters for
+/// custom HTTP(s) checks.
 #[derive(Deserialize, Debug)]
 struct HttpOptions {
     params: Option<HashMap<String,String>>,
@@ -45,10 +43,8 @@ struct HttpOptions {
     ok: u16,
 }
 
-/**
-Provides a deserialize target for general parameters
-for HTTP(s) checks.
-*/
+/// Provides a deserialize target for general parameters
+/// for HTTP(s) checks.
 #[derive(Deserialize, Debug)]
 struct HttpResource {
     desc: String,
@@ -57,11 +53,9 @@ struct HttpResource {
 }
 
 impl HttpResource {
-    /**
-    Checks an HTTP(s) endpoint's availability with a GET request.
-    Prints a success message if the status code is 200 OK, or
-    failure details in any other case.
-    */
+    /// Checks an HTTP(s) endpoint's availability with a GET request.
+    /// Prints a success message if the status code is 200 OK, or
+    /// failure details in any other case.
     fn check_basic(&self) -> Result<(), Box<dyn std::error::Error>> {
 	let client = Client::new();
 	let resp = client.get(&self.addr).send()?;
@@ -73,13 +67,11 @@ impl HttpResource {
 	}
     }
 
-    /**
-    Checks an HTTP(s) endpoint's availability with a form POST request.
-    Values are defined in the `HttpOptions` struct.
-    Prints a success message if the status code is equal to the `ok` value,
-    or failure details when the status code is equaly to the `bad` value or
-    any other value/error.
-    */
+    /// Checks an HTTP(s) endpoint's availability with a form POST request.
+    /// Values are defined in the `HttpOptions` struct.
+    /// Prints a success message if the status code is equal to the `ok` value,
+    /// or failure details when the status code is equaly to the `bad` value or
+    /// any other value/error.
     fn check_custom(&self, options: &HttpOptions) -> Result<(), Box<dyn std::error::Error>> {
 
 	let client = Client::new();
@@ -111,29 +103,23 @@ impl HttpResource {
     }
 }
 
-/**
-Provides a deserialize target for TCP checks
-*/
+/// Provides a deserialize target for TCP checks
 #[derive(Deserialize, Debug)]
 struct TcpResource {
     desc: String,
     addr: String,
 }
 
-/**
-Provides a deserialize target for TOML configuration files
-defining multiple `TcpResource` or `HttpResource` entities
-*/
+/// Provides a deserialize target for TOML configuration files
+/// defining multiple `TcpResource` or `HttpResource` entities
 #[derive(Debug, Deserialize)]
 struct NetworkResources {
     http: Option<Vec<HttpResource>>,
     tcp: Option<Vec<TcpResource>>,
 }
 
-/**
-Defines common behavior between `TcpResource` and `HttpResource`
-structs
-*/
+/// Defines common behavior between `TcpResource` and `HttpResource`
+/// structs
 trait Checker {
     /// Execute the connection check
     fn check(&self) -> Result<(), Box<dyn std::error::Error>>;
@@ -168,35 +154,39 @@ impl Checker for TcpResource {
 }
 
 impl NetworkResources {
-    /**
-    Checks all resources contained by a NetworkResources struct.
-    Any error messages will be printed to the console.
-    */
-    fn check_resources(&self) {
-	NetworkResources::check_vec(&self.tcp);
-	NetworkResources::check_vec(&self.http);
+    /// Checks all resources contained by a NetworkResources struct.
+    /// Any error messages will be printed to the console.
+    fn check_resources(self) {
+	NetworkResources::check_tcp(self.tcp);
+	NetworkResources::check_http(self.http);
     }
 
-    /**
-    Loops through all items present in a NetworkResources element.
-    */
-    fn check_vec<T: Checker> (v: &Option<Vec<T>>) {
+    /// Loops through all items present in a NetworkResources.tcp element.
+    fn check_tcp(v: Option<Vec<TcpResource>>) {
 	if let Some(v) = v {
-	    for element in v.iter() {
-		match element.check() {
+	    v.par_iter()
+		.for_each(|el| match el.check() {
 		    Ok(_) => (),
-		    Err(e) => println!("Failed to connect to {} with:\n\t{:?}", element.description(), e)
-		}
-	    }
+		    Err(e) => println!("Failed to connect to {} with:\n\t{:?}", el.description(), e)
+		});
+	}
+    }
+    
+    /// Loops through all items present in a NetworkResources.http element.
+    fn check_http(v: Option<Vec<HttpResource>>) {
+	if let Some(v) = v {
+	    v.par_iter()
+		.for_each(|el| match el.check() {
+		    Ok(_) => (),
+		    Err(e) => println!("Failed to connect to {} with:\n\t{:?}", el.description(), e)
+		});
 	}
     }
 }
 
-/**
-    Main entrypoint for connection validation. Once the TOML configuration
-    file has been deserialized all nested `TcpResource` and `HttpResource`
-    targets are checked.
-*/
+/// Main entrypoint for connection validation. Once the TOML configuration
+/// file has been deserialized all nested `TcpResource` and `HttpResource`
+/// targets are checked.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {

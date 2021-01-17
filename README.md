@@ -76,22 +76,20 @@ Failed to connect to httpbin JSON endpoint - Error with:
 The TOML structure of the configuration file maps on to JSON cleanly. Defining
 JSON bodies should be as easy as `custom = { json = <Your JSON Here> }`. While
 this was tested to a reasonable degree it's unlikely that every single possibility
-has been explored, so if issues are encountered please [let it be known](https://github.com/anthonyjmartinez/connchk/issues/new/choose).
+has been explored, so if issues are encountered please [let it be known](https://gitlab.com/anthonyjmartinez/connchk/-/issues).
 
 ### Major Changes
 
+- v0.4.0
+  - Adds use of `rayon` to support parallel connection execution
 - v0.3.0
   - Adds support for JSON post bodies.
   - Removes declaration of a "bad" status code. Custom tests define only the expected _good_ status code.
 - v0.2.1 fixes error handling such that testing does not abort with the first failure
 - v0.2.0 disabled the default `reqwest` features to move the package to use of `rustls` instead of `native-tls`
 
-### TODO
-
-- Asynchronous connection checking
-
 ### License
 
 This project uses [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html).
 
-Copyright (C) 2020 Anthony Martinez
+Copyright (C) 2020-2021 Anthony Martinez
