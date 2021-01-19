@@ -2,7 +2,7 @@
 
 ## About
 
-`connchk` is command-line network checking tool written in Rust. It aims
+`connchk` is command-line network verification utility written in Rust. It aims
 to provide a cross platform utility that can verify if your host can reach
 targets defined in a TOML document. These hosts are checked in the following
 ways:
@@ -17,6 +17,9 @@ ways:
 
 The application expects exactly one argument which is the TOML document defining
 target hosts.
+
+Starting in version 0.5.0, it is also possible to use `connchk` as a Rust library.
+Documentation is available [here](https://docs.rs/connchk).
 
 ### Install
 
@@ -64,11 +67,12 @@ custom = { json = { someKey = [3, "AnotherValue", false], anotherKey = { nested 
 $ ./connchk example.toml 
 Successfully connected to GitLab SSH
 Successfully connected to Freenode IRC
-Successfully connected to httpbin IP endpoint
 Successfully connected to httpbin POST endpoint (form)
+Successfully connected to httpbin IP endpoint
 Successfully connected to httpbin JSON endpoint
-Failed to connect to httpbin JSON endpoint - Error with:
-        "Failed to connect to httpbin JSON endpoint - Error with: 502, "
+Failed to connect to httpbin JSON endpoint - Error with: 
+        Status: 502
+        Details: 
 ```
 
 ### JSON Bodies
@@ -80,6 +84,10 @@ has been explored, so if issues are encountered please [let it be known](https:/
 
 ### Major Changes
 
+- v0.5.0
+  - Refactored to produce both binary and library crates
+  - Created a common `Resource` struct to map `TcpResource` and `HttpResources` onto for consumption by `par_iter()` by `rayon`
+  - The order in which success or failure messages are displayed may not be consistent with the order of definition in the TOML input file
 - v0.4.0
   - Adds use of `rayon` to support parallel connection execution
 - v0.3.0
