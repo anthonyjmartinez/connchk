@@ -41,35 +41,19 @@ pub struct HttpOptions {
     pub ok: u16,
 }
 
-/// Provides a deserialize target for general parameters
-/// for HTTP(s) checks.
-#[derive(Deserialize, Debug)]
-pub struct HttpResource {
-    pub desc: String,
-    pub addr: String,
-    pub custom: Option<HttpOptions>,
-}
-
-/// Provides a deserialize target for TCP checks
-#[derive(Deserialize, Debug)]
-pub struct TcpResource {
-    pub desc: String,
-    pub addr: String,
-}
-
 /// A generic resource combining all possible fields into a common type
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Resource {
     pub desc: String,
     pub addr: String,
     pub custom: Option<HttpOptions>,
-    pub res_type: ResType,
+    pub kind: ResType,
 }
 
 impl Resource {
     /// Executes connectivity checks for each type defined in [`ResType`]
     pub fn check(&self) -> Result<(), Box<dyn std::error::Error>> {
-	match self.res_type {
+	match self.kind {
 	    ResType::Tcp => {
 		self.check_tcp()?;
 	    },
@@ -151,7 +135,7 @@ impl Resource {
 }
 
 /// Classifies the resource type for the top-level [`Resource`] struct
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub enum ResType {
     /// An HTTP(s) resource
     Http,
@@ -160,44 +144,18 @@ pub enum ResType {
 }
 
 /// Provides a deserialize target for TOML configuration files
-/// defining multiple [`TcpResource`] or [`HttpResource`] entities
+/// defining multiple [`Resource`] entities
 #[derive(Deserialize, Debug)]
 pub struct NetworkResources {
-    pub http: Option<Vec<HttpResource>>,
-    pub tcp: Option<Vec<TcpResource>>,
+    pub target: Vec<Resource>,
 }
 
 impl NetworkResources {
-    /// Executes parallel connectivity checks for all [`TcpResource`] and
-    /// [`HttpResource`] objects contained within the higher level [`NetworkResources`]
+    /// Executes parallel connectivity checks for all [`Resource`]
+    /// objects contained within the higher level [`NetworkResources`]
     /// struct.
     pub fn check_resources(self) {
-	let mut res_vec: Vec<Resource> = Vec::new();
-	if let Some(v) = &self.tcp {
-	    for tcp in v.iter() {
-		let res = Resource {
-		    desc: tcp.desc.clone(),
-		    addr: tcp.addr.clone(),
-		    custom: None,
-		    res_type: ResType::Tcp,
-		};
-		res_vec.push(res);
-	    }
-	}
-
-	if let Some(v) = &self.http {
-	    for http in v.iter() {
-		let res = Resource {
-		    desc: http.desc.clone(),
-		    addr: http.addr.clone(),
-		    custom: http.custom.clone(),
-		    res_type: ResType::Http,
-		};
-		res_vec.push(res);
-	    }
-	}
-
-	res_vec.par_iter()
+	self.target.par_iter()
 	    .for_each(|el| match el.check() {
 		Ok(_) => println!("Successfully connected to {}", el.description()),
 		Err(e) => println!("Failed to connect to {} with: {}", el.description(), e)

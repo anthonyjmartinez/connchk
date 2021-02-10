@@ -28,38 +28,44 @@ To get `connchk` run `cargo install connchk` on a system with [Cargo](https://do
 ### Example TOML Config
 ```toml
 # example.toml
-[[tcp]]
+[[target]]
+kind = "Tcp"
 desc = "GitLab SSH"
 addr = "gitlab.com:22"
 
-[[tcp]]
+[[target]]
+kind = "Tcp"
 desc = "Freenode IRC"
 addr = "irc.freenode.net:6667"
 
-[[http]]
+[[target]]
+kind = "Tcp"
 desc = "httpbin IP endpoint"
 addr = "https://httpbin.org/ip"
 
 # Posts as a form and reports success if the status code returned is 400
 # which it will be for this bad request to this particular endpoint
-[[http]]
+[[target]]
+kind = "Http"
 desc = "httpbin POST endpoint (form)"
 addr = "https://httpbin.org/status/undefined"
 custom = { params = { someKey = "SpecialValue" }, ok = 400 } 
 
 # Posts as JSON and reports success if the status code returned is 400
 # as it will be for this particular endpoint
-[[http]]
+[[target]]
+kind = "Http"
 desc = "httpbin JSON endpoint"
 addr = "https://httpbin.org/status/400"
 custom = { json = { someKey = "SpecialValue" }, ok = 400 } 
 
-# An example failure - this endpoint will return a 502 status code,
+# An example failure - this endpoing will return a 502 status code,
 # but our configuration expects a 400 
-[[http]]
+[[target]]
+kind = "Http"
 desc = "httpbin JSON endpoint - Error"
 addr = "https://httpbin.org/status/502"
-custom = { json = { someKey = [3, "AnotherValue", false], anotherKey = { nested = "value", count = [1, 2, 3] } }, ok = 400 }
+custom = { json = { someKey = [3, "AnotherValue", false], anotherKey = { nested = "value", count = [1, 2, 3] } }, ok = 400 } 
 ```
 
 ### Example Usage
@@ -84,6 +90,14 @@ has been explored, so if issues are encountered please [let it be known](https:/
 
 ### Major Changes
 
+- v0.6.0
+  - Refactored away `TcpResource` and `HttpResource` structs differentiating individual `Resource` kinds with the `ResType` enum
+  - Added `Resource.kind` to hold `ResType` variants
+  - Modified `NetworkResources` to hold `Vec<Resources>` in `NetworkResources.target`
+  - Above changes are **BREAKING** with respect to all existing configuration files. Users should:
+	- Replace all `[[http]]` or `[[tcp]]` lines with `[[target]]`
+	- Add `kind = "Http"` to any block that previously stared with `[[http]]`
+	- Add `kind = "Tcp"` to any block that previously stared with `[[tcp]]`
 - v0.5.0
   - Refactored to produce both binary and library crates
   - Created a common `Resource` struct to map `TcpResource` and `HttpResources` onto for consumption by `par_iter()` by `rayon`
