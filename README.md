@@ -71,14 +71,14 @@ custom = { json = { someKey = [3, "AnotherValue", false], anotherKey = { nested 
 ### Example Usage
 ```
 $ ./connchk example.toml 
-Successfully connected to GitLab SSH
-Successfully connected to Freenode IRC
-Successfully connected to httpbin POST endpoint (form)
-Successfully connected to httpbin IP endpoint
-Successfully connected to httpbin JSON endpoint
+Successfully connected to GitLab SSH in 72ms
+Successfully connected to Freenode IRC in 176ms
+Successfully connected to httpbin IP endpoint in 648ms
+Successfully connected to httpbin POST endpoint (form) in 666ms
+Successfully connected to httpbin JSON endpoint in 647ms
 Failed to connect to httpbin JSON endpoint - Error with: 
         Status: 502
-        Details: 
+        Details:
 ```
 
 ### JSON Bodies
