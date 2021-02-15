@@ -25,6 +25,7 @@
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::net::{Shutdown, TcpStream};
+use std::time::Instant;
 use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
@@ -41,35 +42,20 @@ pub struct HttpOptions {
     pub ok: u16,
 }
 
-/// Provides a deserialize target for general parameters
-/// for HTTP(s) checks.
-#[derive(Deserialize, Debug)]
-pub struct HttpResource {
-    pub desc: String,
-    pub addr: String,
-    pub custom: Option<HttpOptions>,
-}
-
-/// Provides a deserialize target for TCP checks
-#[derive(Deserialize, Debug)]
-pub struct TcpResource {
-    pub desc: String,
-    pub addr: String,
-}
-
 /// A generic resource combining all possible fields into a common type
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Resource {
     pub desc: String,
     pub addr: String,
     pub custom: Option<HttpOptions>,
-    pub res_type: ResType,
+    pub kind: ResType,
+    pub res: Option<String>,
 }
 
 impl Resource {
     /// Executes connectivity checks for each type defined in [`ResType`]
     pub fn check(&self) -> Result<(), Box<dyn std::error::Error>> {
-	match self.res_type {
+	match self.kind {
 	    ResType::Tcp => {
 		self.check_tcp()?;
 	    },
@@ -82,11 +68,6 @@ impl Resource {
 	    }
 	}
 	Ok(())
-    }
-
-    /// Returns the description of the [`Resource`]
-    pub fn description(&self) -> &String {
-	&self.desc
     }
 
     /// Checks an HTTP(s) endpoint's availability with a GET request.
@@ -109,7 +90,6 @@ impl Resource {
     /// or failure details when the status code is equaly to the `bad` value or
     /// any other value/error.
     fn check_http_custom(&self, options: &HttpOptions) -> Result<(), Box<dyn std::error::Error>> {
-
 	let client = Client::new();
 	let resp: Response;
 	if let Some(params) = &options.params {
@@ -131,7 +111,6 @@ impl Resource {
     /// is used. 
     fn custom_http_resp(&self, options: &HttpOptions, resp: Response) -> Result<(), Box<dyn std::error::Error>> {
 	let resp_code = resp.status().as_u16();
-
 	if resp_code == options.ok {
 	    Ok(())
 	} else {
@@ -151,7 +130,7 @@ impl Resource {
 }
 
 /// Classifies the resource type for the top-level [`Resource`] struct
-#[derive(Debug)]
+#[derive(Deserialize, Debug)]
 pub enum ResType {
     /// An HTTP(s) resource
     Http,
@@ -160,48 +139,39 @@ pub enum ResType {
 }
 
 /// Provides a deserialize target for TOML configuration files
-/// defining multiple [`TcpResource`] or [`HttpResource`] entities
+/// defining multiple [`Resource`] entities
 #[derive(Deserialize, Debug)]
 pub struct NetworkResources {
-    pub http: Option<Vec<HttpResource>>,
-    pub tcp: Option<Vec<TcpResource>>,
+    pub target: Vec<Resource>,
 }
 
 impl NetworkResources {
-    /// Executes parallel connectivity checks for all [`TcpResource`] and
-    /// [`HttpResource`] objects contained within the higher level [`NetworkResources`]
-    /// struct.
-    pub fn check_resources(self) {
-	let mut res_vec: Vec<Resource> = Vec::new();
-	if let Some(v) = &self.tcp {
-	    for tcp in v.iter() {
-		let res = Resource {
-		    desc: tcp.desc.clone(),
-		    addr: tcp.addr.clone(),
-		    custom: None,
-		    res_type: ResType::Tcp,
-		};
-		res_vec.push(res);
-	    }
-	}
-
-	if let Some(v) = &self.http {
-	    for http in v.iter() {
-		let res = Resource {
-		    desc: http.desc.clone(),
-		    addr: http.addr.clone(),
-		    custom: http.custom.clone(),
-		    res_type: ResType::Http,
-		};
-		res_vec.push(res);
-	    }
-	}
-
-	res_vec.par_iter()
-	    .for_each(|el| match el.check() {
-		Ok(_) => println!("Successfully connected to {}", el.description()),
-		Err(e) => println!("Failed to connect to {} with: {}", el.description(), e)
+    /// Executes parallel connectivity checks for all [`Resource`]
+    /// objects contained within the higher level [`NetworkResources`]
+    /// struct. Prints success message with call latency or failure message
+    /// with available details. Maintains the resource order defined in the
+    /// supplied TOML configuration file.
+    pub fn check_resources(&mut self) {
+	self.target.par_iter_mut()
+	    .for_each(|el| {
+		let now = Instant::now();
+		match el.check() {
+		    Ok(_) => {
+			let dur = now.elapsed().as_millis();
+			let res = format!("Successfully connected to {} in {}ms", el.desc, dur);
+			el.res = Some(res);
+		    },
+		    Err(e) => {
+			let res = format!("Failed to connect to {} with: {}", el.desc, e);
+			el.res = Some(res);
+		    }
+		}
 	    });
-	
+
+	for target in self.target.iter() {
+	    if let Some(result) = &target.res {
+		println!("{}", result)
+	    }
+	}
     }
 }
