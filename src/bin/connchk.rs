@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
 	let config_path = std::path::PathBuf::from(&args[1]);
 	let config = std::fs::read_to_string(&config_path)?;
-	let resources: NetworkResources = toml::from_str(&config)?;
+	let mut resources: NetworkResources = toml::from_str(&config)?;
 	resources.check_resources();
     }
    

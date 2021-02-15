@@ -25,6 +25,7 @@
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::net::{Shutdown, TcpStream};
+use std::time::Instant;
 use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
@@ -48,6 +49,7 @@ pub struct Resource {
     pub addr: String,
     pub custom: Option<HttpOptions>,
     pub kind: ResType,
+    pub res: Option<String>,
 }
 
 impl Resource {
@@ -66,11 +68,6 @@ impl Resource {
 	    }
 	}
 	Ok(())
-    }
-
-    /// Returns the description of the [`Resource`]
-    pub fn description(&self) -> &String {
-	&self.desc
     }
 
     /// Checks an HTTP(s) endpoint's availability with a GET request.
@@ -93,7 +90,6 @@ impl Resource {
     /// or failure details when the status code is equaly to the `bad` value or
     /// any other value/error.
     fn check_http_custom(&self, options: &HttpOptions) -> Result<(), Box<dyn std::error::Error>> {
-
 	let client = Client::new();
 	let resp: Response;
 	if let Some(params) = &options.params {
@@ -115,7 +111,6 @@ impl Resource {
     /// is used. 
     fn custom_http_resp(&self, options: &HttpOptions, resp: Response) -> Result<(), Box<dyn std::error::Error>> {
 	let resp_code = resp.status().as_u16();
-
 	if resp_code == options.ok {
 	    Ok(())
 	} else {
@@ -153,13 +148,30 @@ pub struct NetworkResources {
 impl NetworkResources {
     /// Executes parallel connectivity checks for all [`Resource`]
     /// objects contained within the higher level [`NetworkResources`]
-    /// struct.
-    pub fn check_resources(self) {
-	self.target.par_iter()
-	    .for_each(|el| match el.check() {
-		Ok(_) => println!("Successfully connected to {}", el.description()),
-		Err(e) => println!("Failed to connect to {} with: {}", el.description(), e)
+    /// struct. Prints success message with call latency or failure message
+    /// with available details. Maintains the resource order defined in the
+    /// supplied TOML configuration file.
+    pub fn check_resources(&mut self) {
+	self.target.par_iter_mut()
+	    .for_each(|el| {
+		let now = Instant::now();
+		match el.check() {
+		    Ok(_) => {
+			let dur = now.elapsed().as_millis();
+			let res = format!("Successfully connected to {} in {}ms", el.desc, dur);
+			el.res = Some(res);
+		    },
+		    Err(e) => {
+			let res = format!("Failed to connect to {} with: {}", el.desc, e);
+			el.res = Some(res);
+		    }
+		}
 	    });
-	
+
+	for target in self.target.iter() {
+	    if let Some(result) = &target.res {
+		println!("{}", result)
+	    }
+	}
     }
 }
