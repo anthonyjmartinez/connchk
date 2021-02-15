@@ -98,6 +98,7 @@ has been explored, so if issues are encountered please [let it be known](https:/
 	- Replace all `[[http]]` or `[[tcp]]` lines with `[[target]]`
 	- Add `kind = "Http"` to any block that previously stared with `[[http]]`
 	- Add `kind = "Tcp"` to any block that previously stared with `[[tcp]]`
+  - Updated dependencies in Cargo.toml & Cargo.lock
 - v0.5.0
   - Refactored to produce both binary and library crates
   - Created a common `Resource` struct to map `TcpResource` and `HttpResources` onto for consumption by `par_iter()` by `rayon`
