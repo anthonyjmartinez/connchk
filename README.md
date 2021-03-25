@@ -86,10 +86,13 @@ Failed to connect to httpbin JSON endpoint - Error with:
 The TOML structure of the configuration file maps on to JSON cleanly. Defining
 JSON bodies should be as easy as `custom = { json = <Your JSON Here> }`. While
 this was tested to a reasonable degree it's unlikely that every single possibility
-has been explored, so if issues are encountered please [let it be known](https://gitlab.com/anthonyjmartinez/connchk/-/issues).
+has been explored, so if issues are encountered please [let it be known](https://git.staart.one/ajmartinez/connchk/issues).
 
 ### Major Changes
 
+- v0.7.0
+  - Changes the project to dual license Apache 2.0 / MIT.
+  - Adds a dependencies to [clap](https://crates.io/crates/clap) for argument parsing.
 - v0.6.0
   - Refactored away `TcpResource` and `HttpResource` structs differentiating individual `Resource` kinds with the `ResType` enum
   - Added `Resource.kind` to hold `ResType` variants
@@ -113,8 +116,20 @@ has been explored, so if issues are encountered please [let it be known](https:/
 - v0.2.1 fixes error handling such that testing does not abort with the first failure
 - v0.2.0 disabled the default `reqwest` features to move the package to use of `rustls` instead of `native-tls`
 
+
 ### License
 
-This project uses [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0.html).
+Licensed under either of
+
+ * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.
 
 Copyright (C) 2020-2021 Anthony Martinez

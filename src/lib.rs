@@ -2,18 +2,10 @@
     connchk gives a status of reachability of plain tcp or http(s) endpoints from your machine
     Copyright (C) 2020-2021 Anthony Martinez
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
+    http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
+    http://opensource.org/licenses/MIT>, at your option. This file may not be
+    copied, modified, or distributed except according to those terms.
 */
 
 //!
@@ -25,13 +17,35 @@
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::net::{Shutdown, TcpStream};
+use std::path::PathBuf;
 use std::time::Instant;
+
+use clap::{App, Arg};
 use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
 use serde::Deserialize;
 use serde_json::Value;
 
+
+/// Provides argument handling using Clap
+pub fn arg_handler() -> Option<PathBuf> {
+    let matches = App::new("connchk")
+        .version("0.6.1")
+        .author("Anthony Martinez <anthony@ajmartinez.com>")
+	.about("Command-line network checking tool written in Rust")
+        .arg(Arg::with_name("config")
+             .help("Path to the configuration file to use")
+             .index(1)
+             .required(true))
+        .get_matches();
+	
+    if let Some(conf_path) = matches.value_of("config") {
+	Some(PathBuf::from(conf_path))
+    } else {
+	None
+    }
+}
 
 /// Provides a deserialize target for optional parameters in
 /// custom HTTP(s) checks.
