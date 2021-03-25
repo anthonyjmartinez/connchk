@@ -31,7 +31,7 @@ use serde_json::Value;
 /// Provides argument handling using Clap
 pub fn arg_handler() -> Option<PathBuf> {
     let matches = App::new("connchk")
-        .version("0.6.1")
+        .version("0.7.0")
         .author("Anthony Martinez <anthony@ajmartinez.com>")
 	.about("Command-line network checking tool written in Rust")
         .arg(Arg::with_name("config")
