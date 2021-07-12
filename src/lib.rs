@@ -20,7 +20,7 @@ use std::net::{Shutdown, TcpStream};
 use std::path::PathBuf;
 use std::time::Instant;
 
-use clap::{App, Arg};
+use clap::{App, Arg, crate_authors, crate_version, crate_description};
 use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
@@ -31,20 +31,16 @@ use serde_json::Value;
 /// Provides argument handling using Clap
 pub fn arg_handler() -> Option<PathBuf> {
     let matches = App::new("connchk")
-        .version("0.7.0")
-        .author("Anthony Martinez <anthony@ajmartinez.com>")
-	.about("Command-line network checking tool written in Rust")
+        .version(crate_version!())
+        .author(crate_authors!())
+	.about(crate_description!())
         .arg(Arg::with_name("config")
              .help("Path to the configuration file to use")
              .index(1)
              .required(true))
         .get_matches();
 	
-    if let Some(conf_path) = matches.value_of("config") {
-	Some(PathBuf::from(conf_path))
-    } else {
-	None
-    }
+    matches.value_of("config").map(PathBuf::from)
 }
 
 /// Provides a deserialize target for optional parameters in
