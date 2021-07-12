@@ -9,7 +9,6 @@
 */
 
 use connchk::{arg_handler, NetworkResources};
-use toml;
 
 /// Main entrypoint for connection validation. Once the TOML configuration
 /// file has been deserialized all nested `TcpResource` and `HttpResource`
