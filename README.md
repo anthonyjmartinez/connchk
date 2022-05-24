@@ -90,6 +90,7 @@ has been explored, so if issues are encountered please [let it be known](https:/
 
 ### Major Changes
 
+- v0.8.0 upgrades argument parsing to `clap` v3.x.
 - v0.7.0
   - Changes the project to dual license Apache 2.0 / MIT.
   - Adds a dependencies to [clap](https://crates.io/crates/clap) for argument parsing.
@@ -136,4 +137,4 @@ additional terms or conditions.
 
 To discuss features, offer assistance, or get help please join the project's [Matrix room](https://matrix.to/#/#connchk:txrx.staart.one).
 
-Copyright (C) 2020-2021 Anthony Martinez
+Copyright (C) 2020-2022 Anthony Martinez

@@ -1,6 +1,6 @@
 /*   
     connchk gives a status of reachability of plain tcp or http(s) endpoints from your machine
-    Copyright (C) 2020-2021 Anthony Martinez
+    Copyright (C) 2020-2022 Anthony Martinez
 
     Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
     http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
@@ -20,7 +20,7 @@ use std::net::{Shutdown, TcpStream};
 use std::path::PathBuf;
 use std::time::Instant;
 
-use clap::{App, Arg, crate_authors, crate_version, crate_description};
+use clap::{Command, Arg, crate_authors, crate_version, crate_description};
 use rayon::prelude::*;
 use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
@@ -30,11 +30,11 @@ use serde_json::Value;
 
 /// Provides argument handling using Clap
 pub fn arg_handler() -> Option<PathBuf> {
-    let matches = App::new("connchk")
+    let matches = Command::new("connchk")
         .version(crate_version!())
         .author(crate_authors!())
 	.about(crate_description!())
-        .arg(Arg::with_name("config")
+        .arg(Arg::new("config")
              .help("Path to the configuration file to use")
              .index(1)
              .required(true))
@@ -71,7 +71,7 @@ impl Resource {
 	    },
 	    ResType::Http => {
 		if let Some(opts) = &self.custom {
-		    self.check_http_custom(&opts)?;
+		    self.check_http_custom(opts)?;
 		} else {
 		    self.check_http_basic()?;
 		}
