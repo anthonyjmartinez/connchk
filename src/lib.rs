@@ -40,7 +40,7 @@ pub fn arg_handler() -> Option<PathBuf> {
              .required(true))
         .get_matches();
 	
-    matches.value_of("config").map(PathBuf::from)
+    matches.get_one::<String>("config").map(PathBuf::from)
 }
 
 /// Provides a deserialize target for optional parameters in
