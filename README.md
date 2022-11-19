@@ -90,6 +90,7 @@ has been explored, so if issues are encountered please [let it be known](https:/
 
 ### Major Changes
 
+- v0.9.0 upgrades argument parsing to `clap` v4.x.
 - v0.8.0 upgrades argument parsing to `clap` v3.x.
 - v0.7.0
   - Changes the project to dual license Apache 2.0 / MIT.
@@ -116,7 +117,6 @@ has been explored, so if issues are encountered please [let it be known](https:/
   - Removes declaration of a "bad" status code. Custom tests define only the expected _good_ status code.
 - v0.2.1 fixes error handling such that testing does not abort with the first failure
 - v0.2.0 disabled the default `reqwest` features to move the package to use of `rustls` instead of `native-tls`
-
 
 ### License
 
