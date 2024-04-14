@@ -1,6 +1,6 @@
 /*   
     connchk gives a status of reachability of plain tcp or http(s) endpoints from your machine
-    Copyright (C) 2020-2022 Anthony Martinez
+    Copyright (C) 2020-2024 Anthony Martinez
 
     Licensed under the Apache License, Version 2.0, <LICENSE-APACHE or
     http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or

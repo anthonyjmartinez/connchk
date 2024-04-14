@@ -1,12 +1,12 @@
 [package]
 name = "connchk"
-version = "0.9.0"
+version = "0.9.1"
 authors = ["Anthony Martinez <anthony@ajmartinez.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-homepage = "https://git.staart.one/ajmartinez/connchk"
-repository = "https://git.staart.one/ajmartinez/connchk.git"
+homepage = "https://github.com/anthonyjmartinez/connchk"
+repository = "https://github.com/anthonyjmartinez/connchk.git"
 description = "Cross-platform command-line network checking tool in Rust"
 keywords = ["network", "CLI", "tools"]
 categories = ["command-line-utilities"]
